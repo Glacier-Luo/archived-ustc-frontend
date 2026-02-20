@@ -1,0 +1,29 @@
+.puzzleWithListContainer {
+  --single-row-breakpoint: 765px;
+  display: flex;
+  flex-direction: row;
+  gap: 18px;
+
+  :global(.puzzle-sidebar) {
+    flex: 0 0 320px;
+    min-width: 0;
+  }
+
+  :global(.puzzle-content-container) {
+    flex: 1 1;
+    min-width: 0;
+  }
+
+  @media (max-width: var(--single-row-breakpoint)) {
+    display: block;
+
+    :global(.puzzle-sidebar) {
+      width: 100%;
+      margin-bottom: 24px;
+    }
+
+    :global(.portal-main) {
+      margin-left: unset;
+    }
+  }
+}

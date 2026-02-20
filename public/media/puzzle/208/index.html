@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Alchemy</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #524c52;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .craft-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .craft-area {
+            background-color: #524c52;
+            border: 4px solid #666;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .craft-slots {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .env-slot {
+            width: 80px;
+            height: 80px;
+            margin-right: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('./UI/slot.webp');
+            background-size: 100% 100%;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .item-slots {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px;
+            min-height: 100px;
+            flex-grow: 1;
+        }
+
+        .item-slot {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('./UI/slot.webp');
+            background-size: 100% 100%;
+            background-color: #524c52;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .craft-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .craft-button {
+            display: block;
+            margin: 0 auto;
+            padding: 24px 70px;
+            background-image: url('./UI/bottom.png');
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .save-load-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .save-button, .load-button {
+            padding: 10px 15px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 120px;
+        }
+
+        .save-button {
+            background-color: #2196F3;
+        }
+
+        .load-button {
+            background-color: #ff9800;
+        }
+
+        .craft-button:hover, .save-button:hover, .load-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .item-library {
+            background-color: #524c52;
+            border: 4px solid #666;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .library-category {
+            margin-bottom: 20px;
+        }
+
+        .category-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #ddd;
+            border-bottom: 1px solid #666;
+            padding-bottom: 5px;
+        }
+
+        .items-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .library-item {
+            width: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .library-item:hover {
+            transform: scale(1.05);
+        }
+
+        .item-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 5px;
+            overflow: hidden;
+        }
+
+        .item-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .item-name {
+            font-size: 12px;
+            text-align: center;
+            color: #ddd;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        .message {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            display: block;
+        }
+
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+            display: block;
+        }
+
+        /* 弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background-color: #524c52;
+            border: 4px solid #666;
+            padding: 20px;
+            width: 90%;
+            max-width: 300px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transform: translateY(-20px);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .modal-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #999;
+        }
+
+        .modal-message {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        .modal-close {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .modal-close:hover {
+            background-color: #45a049;
+        }
+
+        /* 失败弹窗按钮样式 */
+        .error-modal .modal-close {
+            background-color: #a94442;
+        }
+        
+        .error-modal .modal-close:hover {
+            background-color: #8a3731;
+        }
+        
+        .error-modal .modal-title {
+            color: #ff6b6b;
+        }
+
+        /* 存档字符串弹窗样式 */
+        .save-string-modal .modal,
+        .load-string-modal .modal {
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .save-string-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .save-string {
+            width: 100%;
+            padding: 10px;
+            font-size: 12px;
+            background-color: #444;
+            color: #ddd;
+            border: 1px solid #666;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .copy-button {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            padding: 3px 8px;
+            background-color: #666;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .load-string-modal textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            font-size: 12px;
+            background-color: #444;
+            color: #ddd;
+            border: 1px solid #666;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            resize: none;
+        }
+        
+        .load-string-modal .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <h1><img src="./UI/title.webp" width="32%" alt="Local Alchemy"></h1>
+    
+    <div class="craft-container">
+        <!-- 合成区域 -->
+        <div class="craft-area">
+            <div class="craft-slots">
+                <div class="env-slot" id="envSlot"></div>
+                <img src="./UI/ball.webp" width="3%">
+                <div class="item-slots" id="itemSlots">
+                    <!-- 动态生成物品槽 -->
+                </div>
+            </div>
+            <div class="craft-buttons">
+                <button class="craft-button" id="craftBtn"></button>
+            </div>
+            <div class="message" id="message"></div>
+        </div>
+
+        <!-- 物品库 -->
+        <div class="item-library" id="itemLibrary">
+            <!-- 站点分类 -->
+            <div class="library-category">
+                <h3 class="category-title">Special</h3>
+                <div class="items-grid" id="stationsGrid"></div>
+            </div>
+
+            <!-- 环境分类 -->
+            <div class="library-category">
+                <h3 class="category-title">Environment</h3>
+                <div class="items-grid" id="envsGrid"></div>
+            </div>
+
+            <!-- 物品分类 -->
+            <div class="library-category">
+                <h3 class="category-title">Item</h3>
+                <div class="items-grid" id="itemsGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 保存和加载按钮 -->
+    <div class="save-load-buttons">
+        <button class="save-button" id="saveBtn">保存存档</button>
+        <button class="load-button" id="loadBtn">加载存档</button>
+    </div>
+
+    <!-- 合成成功弹窗 -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal">
+            <div class="modal-icon" id="modalIcon">
+                <img src="" alt="合成结果" onerror="this.src='/media/puzzle/208/images/default.webp'">
+            </div>
+            <h2 class="modal-title">成功！</h2>
+            <p class="modal-message" id="modalMessage"></p>
+            <button class="modal-close" id="modalClose">确定</button>
+        </div>
+    </div>
+
+    <!-- 合成失败弹窗 -->
+    <div class="modal-overlay" id="errorModal">
+        <div class="modal error-modal">
+            <div class="modal-icon">
+                <img src="./images/error.webp" alt="合成失败" onerror="this.src='/media/puzzle/208/images/default.webp'">
+            </div>
+            <h2 class="modal-title">操作失败</h2>
+            <p class="modal-message" id="errorMessage"></p>
+            <button class="modal-close" id="errorClose">确定</button>
+        </div>
+    </div>
+
+    <!-- 存档字符串弹窗 -->
+    <div class="modal-overlay save-string-modal" id="saveStringModal">
+        <div class="modal">
+            <h2 class="modal-title">存档已创建</h2>
+            <p class="modal-message">请复制以下字符串并妥善保存：</p>
+            <div class="save-string-container">
+                <div class="save-string" id="saveString"></div>
+                <button class="copy-button" id="copySaveStringBtn">复制</button>
+            </div>
+            <button class="modal-close" id="saveStringModalClose">关闭</button>
+        </div>
+    </div>
+
+    <!-- 加载存档字符串弹窗 -->
+    <div class="modal-overlay load-string-modal" id="loadStringModal">
+        <div class="modal">
+            <h2 class="modal-title">加载存档</h2>
+            <p class="modal-message">请粘贴存档字符串：</p>
+            <textarea id="loadString"></textarea>
+            <div class="modal-actions">
+                <button class="modal-close" id="loadStringModalClose">取消</button>
+                <button class="modal-close" id="confirmLoadBtn">加载</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM元素
+        const envSlot = document.getElementById('envSlot');
+        const itemSlotsContainer = document.getElementById('itemSlots');
+        const craftBtn = document.getElementById('craftBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        const messageEl = document.getElementById('message');
+        const stationsGrid = document.getElementById('stationsGrid');
+        const envsGrid = document.getElementById('envsGrid');
+        const itemsGrid = document.getElementById('itemsGrid');
+        // 弹窗元素
+        const successModal = document.getElementById('successModal');
+        const modalIcon = document.getElementById('modalIcon').querySelector('img');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalClose = document.getElementById('modalClose');
+        // 失败弹窗元素
+        const errorModal = document.getElementById('errorModal');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorClose = document.getElementById('errorClose');
+        // 存档字符串弹窗元素
+        const saveStringModal = document.getElementById('saveStringModal');
+        const saveString = document.getElementById('saveString');
+        const copySaveStringBtn = document.getElementById('copySaveStringBtn');
+        const saveStringModalClose = document.getElementById('saveStringModalClose');
+        // 加载存档字符串弹窗元素
+        const loadStringModal = document.getElementById('loadStringModal');
+        const loadString = document.getElementById('loadString');
+        const loadStringModalClose = document.getElementById('loadStringModalClose');
+        const confirmLoadBtn = document.getElementById('confirmLoadBtn');
+
+        // 状态管理
+        let placedEnv = null;
+        const placedItems = [];
+        const ITEM_SLOTS_COUNT = 10; // 物品槽数量
+        let allItemsData = {}; // 从后端获取的所有物品数据
+        let unlockedItems = {
+            stations: new Set(),
+            envs: new Set(),
+            items: new Set()
+        };
+        let saveData = {
+            placedEnv: null,
+            placedItems: [],
+            allItemsData: {}, // 新增：保存所有物品数据
+            unlockedItems: {
+                stations: [],
+                envs: [],
+                items: []
+            }
+        };
+
+        // 初始化物品槽
+        function initItemSlots() {
+            itemSlotsContainer.innerHTML = '';
+            for (let i = 0; i < ITEM_SLOTS_COUNT; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'item-slot';
+                slot.dataset.index = i;
+                slot.addEventListener('click', () => removeItemFromSlot(i));
+                itemSlotsContainer.appendChild(slot);
+            }
+        }
+
+        // 从后端加载初始物品数据
+        async function loadInitialItems() {
+            try {
+                const response = await fetch('/service/wish/special/local-alchemy/items');
+                allItemsData = await response.json();
+                
+                // 初始化解锁物品集合
+                unlockedItems.stations = new Set(allItemsData.stations.filter(item => item.unlocked).map(item => item.id));
+                unlockedItems.envs = new Set(allItemsData.envs.filter(item => item.unlocked).map(item => item.id));
+                unlockedItems.items = new Set(allItemsData.items.filter(item => item.unlocked).map(item => item.id));
+                
+                // 初始化存档数据
+                saveData.allItemsData = allItemsData; // 新增：保存所有物品数据
+                saveData.unlockedItems = {
+                    stations: Array.from(unlockedItems.stations),
+                    envs: Array.from(unlockedItems.envs),
+                    items: Array.from(unlockedItems.items)
+                };
+                
+                renderItemLibrary();
+            } catch (error) {
+                console.error('加载初始物品失败:', error);
+                showErrorModal('加载初始物品失败');
+            }
+        }
+
+        // 获取当前已解锁的物品
+        function getUnlockedItems() {
+            return {
+                stations: allItemsData.stations.filter(item => unlockedItems.stations.has(item.id)),
+                envs: allItemsData.envs.filter(item => unlockedItems.envs.has(item.id)),
+                items: allItemsData.items.filter(item => unlockedItems.items.has(item.id))
+            };
+        }
+
+        // 渲染物品库
+        function renderItemLibrary() {
+            const unlocked = getUnlockedItems();
+
+            // 渲染站点
+            stationsGrid.innerHTML = '';
+            unlocked.stations.forEach(item => {
+                stationsGrid.appendChild(createLibraryItemElement(item));
+            });
+
+            // 渲染环境
+            envsGrid.innerHTML = '';
+            unlocked.envs.forEach(item => {
+                envsGrid.appendChild(createLibraryItemElement(item));
+            });
+
+            // 渲染物品
+            itemsGrid.innerHTML = '';
+            unlocked.items.forEach(item => {
+                itemsGrid.appendChild(createLibraryItemElement(item));
+            });
+        }
+
+        // 创建物品库元素（使用图片）
+        function createLibraryItemElement(item) {
+            const el = document.createElement('div');
+            el.className = 'library-item';
+            el.innerHTML = `
+                <div class="item-icon">
+                    <img src="./images/${item.id}.webp" alt="${item.name}" 
+                         onerror="this.src='/media/puzzle/208/images/default.webp'">
+                </div>
+                <div class="item-name">${item.name}</div>
+            `;
+            el.addEventListener('click', () => handleLibraryItemClick(item));
+            return el;
+        }
+
+        // 处理物品库物品点击
+        function handleLibraryItemClick(item) {
+            if (item.type === 'station' || item.type === 'env') {
+                placedEnv = item;
+                envSlot.innerHTML = `
+                    <div class="item-icon">
+                        <img src="./images/${item.id}.webp" alt="${item.name}"
+                             onerror="this.src='/media/puzzle/208/images/default.webp'">
+                    </div>
+                `;
+            } else if (item.type === 'item') {
+                const emptyIndex = placedItems.findIndex(i => i === null);
+                if (emptyIndex !== -1) {
+                    placedItems[emptyIndex] = item;
+                } else if (placedItems.length < ITEM_SLOTS_COUNT) {
+                    placedItems.push(item);
+                }
+                updateItemSlots();
+            }
+        }
+
+        // 更新物品槽显示
+        function updateItemSlots() {
+            const slots = itemSlotsContainer.querySelectorAll('.item-slot');
+            slots.forEach((slot, index) => {
+                const item = placedItems[index];
+                slot.innerHTML = item ? `
+                    <div class="item-icon">
+                        <img src="./images/${item.id}.webp" alt="${item.name}"
+                             onerror="this.src='/media/puzzle/208/images/default.webp'">
+                    </div>
+                ` : '';
+            });
+        }
+
+        // 从物品槽移除物品
+        function removeItemFromSlot(index) {
+            if (placedItems[index]) {
+                placedItems.splice(index, 1);
+                while (placedItems.length < ITEM_SLOTS_COUNT) {
+                    placedItems.push(null);
+                }
+                updateItemSlots();
+            }
+        }
+
+        // 显示成功弹窗
+        function showSuccessModal(product) {
+            modalIcon.src = `./images/${product.id}.webp`;
+            modalMessage.textContent = `获得了 ${product.name}`;
+            successModal.classList.add('active');
+        }
+
+        // 显示失败弹窗
+        function showErrorModal(message) {
+            errorMessage.textContent = message;
+            errorModal.classList.add('active');
+        }
+
+        // 隐藏成功弹窗
+        function hideSuccessModal() {
+            successModal.classList.remove('active');
+        }
+
+        // 隐藏失败弹窗
+        function hideErrorModal() {
+            errorModal.classList.remove('active');
+        }
+
+        // 处理合成逻辑
+        async function handleCraft() {
+            // 更新存档数据
+            updateSaveData();
+            
+            const craftData = {
+                env: placedEnv ? placedEnv.id : null,
+                items: placedItems.filter(Boolean).map(item => item.id)
+            };
+
+            try {
+                const response = await fetch('/service/wish/special/local-alchemy/craft', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(craftData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 前端处理解锁
+                    const product = result.product;
+                    
+                    // 将新解锁的物品添加到 allItemsData
+                    const category = allItemsData[product.type + 's']; // 'station' -> 'stations', 'env' -> 'envs', 'item' -> 'items'
+                    const itemExists = category.some(item => item.id === product.id);
+                    
+                    if (!itemExists) {
+                        category.push(product);
+                    }
+
+                    if (product.type === 'station') {
+                        unlockedItems.stations.add(product.id);
+                    } else if (product.type === 'env') {
+                        unlockedItems.envs.add(product.id);
+                    } else if (product.type === 'item') {
+                        unlockedItems.items.add(product.id);
+                    }
+                    
+                    // 更新存档中的解锁状态
+                    saveData.unlockedItems = {
+                        stations: Array.from(unlockedItems.stations),
+                        envs: Array.from(unlockedItems.envs),
+                        items: Array.from(unlockedItems.items)
+                    };
+                    
+                    showSuccessModal(product);
+                    renderItemLibrary(); // 重新渲染物品库
+                    clearCraftArea();
+                } else {
+                    showErrorModal('没有匹配的配方');
+                    clearCraftArea();
+                }
+            } catch (error) {
+                console.error('合成请求失败:', error);
+                showErrorModal('合成请求失败，请重试');
+            }
+        }
+
+        // 清空合成区域
+        function clearCraftArea() {
+            placedEnv = null;
+            placedItems.length = 0;
+            while (placedItems.length < ITEM_SLOTS_COUNT) {
+                placedItems.push(null);
+            }
+            envSlot.innerHTML = '';
+            updateItemSlots();
+        }
+
+        // 更新存档数据
+        function updateSaveData() {
+            saveData.placedEnv = placedEnv;
+            saveData.placedItems = [...placedItems];
+            saveData.allItemsData = allItemsData; // 新增：保存所有物品数据
+            saveData.unlockedItems = {
+                stations: Array.from(unlockedItems.stations),
+                envs: Array.from(unlockedItems.envs),
+                items: Array.from(unlockedItems.items)
+            };
+        }
+
+        // 保存存档（使用后端编码）
+        async function saveGame() {
+            updateSaveData();
+            try {
+                const response = await fetch('/service/wish/special/local-alchemy/save/encode', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(saveData)
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    saveString.textContent = result.encoded_str;
+                    saveStringModal.classList.add('active');
+                } else {
+                    showErrorModal('保存存档失败: ' + result.error);
+                }
+            } catch (error) {
+                console.error('保存存档失败:', error);
+                showErrorModal('保存存档失败，请重试');
+            }
+        }
+
+        // 加载存档（使用后端解码接口）
+        async function loadGame(savedString) {
+            try {
+                const response = await fetch('/service/wish/special/local-alchemy/items/from_encoded', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ encoded_str: savedString })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    saveData = result.data;
+                    
+                    // 恢复所有物品数据
+                    allItemsData = saveData.allItemsData;
+                    
+                    // 恢复解锁状态
+                    unlockedItems.stations = new Set(saveData.unlockedItems.stations);
+                    unlockedItems.envs = new Set(saveData.unlockedItems.envs);
+                    unlockedItems.items = new Set(saveData.unlockedItems.items);
+                    
+                    // 恢复放置的物品
+                    placedEnv = saveData.placedEnv;
+                    placedItems.length = 0;
+                    placedItems.push(...saveData.placedItems);
+                    
+                    // 确保物品槽数量正确
+                    while (placedItems.length < ITEM_SLOTS_COUNT) {
+                        placedItems.push(null);
+                    }
+                    
+                    // 更新UI
+                    updateItemSlots();
+                    if (placedEnv) {
+                        envSlot.innerHTML = `
+                            <div class="item-icon">
+                                <img src="./images/${placedEnv.id}.webp" alt="${placedEnv.name}"
+                                     onerror="this.src='/media/puzzle/208/images/default.webp'">
+                            </div>
+                        `;
+                    }
+                    
+                    // 重新渲染物品库
+                    renderItemLibrary();
+                    
+                    showSuccessModal({id: 'load', name: '存档已加载'});
+                } else {
+                    showErrorModal('加载存档失败: ' + result.error);
+                }
+            } catch (error) {
+                console.error('加载存档失败:', error);
+                showErrorModal('无效的存档字符串');
+            }
+        }
+
+        // 复制存档字符串到剪贴板
+        function copySaveString() {
+            const textarea = document.createElement('textarea');
+            textarea.value = saveString.textContent;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            copySaveStringBtn.textContent = '已复制!';
+            setTimeout(() => {
+                copySaveStringBtn.textContent = '复制';
+            }, 2000);
+        }
+
+        // 初始化
+        async function init() {
+            initItemSlots();
+            while (placedItems.length < ITEM_SLOTS_COUNT) {
+                placedItems.push(null);
+            }
+            await loadInitialItems();
+            
+            // 绑定事件
+            craftBtn.addEventListener('click', handleCraft);
+            saveBtn.addEventListener('click', saveGame);
+            loadBtn.addEventListener('click', () => {
+                loadString.value = '';
+                loadStringModal.classList.add('active');
+            });
+            
+            envSlot.addEventListener('click', () => {
+                placedEnv = null;
+                envSlot.innerHTML = '';
+            });
+            
+            // 弹窗事件
+            modalClose.addEventListener('click', hideSuccessModal);
+            successModal.addEventListener('click', (e) => {
+                if (e.target === successModal) {
+                    hideSuccessModal();
+                }
+            });
+            
+            errorClose.addEventListener('click', hideErrorModal);
+            errorModal.addEventListener('click', (e) => {
+                if (e.target === errorModal) {
+                    hideErrorModal();
+                }
+            });
+            
+            // 存档字符串弹窗事件
+            saveStringModalClose.addEventListener('click', () => {
+                saveStringModal.classList.remove('active');
+            });
+            copySaveStringBtn.addEventListener('click', copySaveString);
+            
+            // 加载存档字符串弹窗事件
+            loadStringModalClose.addEventListener('click', () => {
+                loadStringModal.classList.remove('active');
+            });
+            confirmLoadBtn.addEventListener('click', () => {
+                const savedString = loadString.value.trim();
+                if (savedString) {
+                    loadGame(savedString);
+                    loadStringModal.classList.remove('active');
+                } else {
+                    loadStringModal.classList.remove('active');
+                    showErrorModal('请输入有效的存档字符串');
+                }
+            });
+        }
+
+        // 启动应用
+        init();
+    </script>
+</body>
+</html>

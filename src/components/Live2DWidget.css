@@ -1,0 +1,380 @@
+/* Live2D Widget 基础样式 */
+.live2d-widget {
+    position: fixed;
+    user-select: none;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s ease;
+    transform-origin: center bottom;
+    z-index: 1000;
+    touch-action: none; /* 防止移动端滚动干扰拖拽 */
+    -webkit-touch-callout: none; /* 禁用iOS长按菜单 */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.live2d-widget.dragging {
+    transition: none;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+    will-change: transform, left, top; /* 优化拖拽性能 */
+    z-index: 1001; /* 确保拖拽时在最上层 */
+}
+
+.live2d-widget.hovered:not(.dragging) {
+    transform: scale(1.02);
+}
+
+/* 吸附相关样式 */
+.live2d-widget.snap-target-bottom-left:not(.dragging),
+.live2d-widget.snap-target-bottom-right:not(.dragging) {
+    filter: drop-shadow(0 0 20px rgba(74, 144, 226, 0.6));
+    transform: scale(1.02);
+}
+
+.live2d-widget.dragging {
+    transform: scale(1.05);
+}
+
+.live2d-widget.snapping {
+    filter: drop-shadow(0 0 15px rgba(74, 144, 226, 0.8));
+}
+
+/* 吸附区域指示器 */
+.snap-zone {
+    border: 2px dashed rgba(74, 144, 226, 0.6);
+    border-radius: 8px;
+    background: rgba(74, 144, 226, 0.15);
+    opacity: 1;
+    transition: all 0.3s ease;
+    animation: snap-zone-pulse 1.5s ease-in-out infinite;
+}
+
+.snap-zone.active {
+    border-color: rgba(74, 144, 226, 0.9);
+    background: rgba(74, 144, 226, 0.25);
+    box-shadow: 0 0 25px rgba(74, 144, 226, 0.4);
+    animation: snap-zone-active-pulse 1s ease-in-out infinite;
+}
+
+@keyframes snap-zone-pulse {
+    0%, 100% {
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.01);
+    }
+}
+
+@keyframes snap-zone-active-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 25px rgba(74, 144, 226, 0.4);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.02);
+        box-shadow: 0 0 30px rgba(74, 144, 226, 0.6);
+    }
+}
+
+/* 角色主体 */
+.live2d-character {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.live2d-character img {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    transition: all 0.3s ease, opacity 0.5s ease; /* 添加图片切换的过渡效果 */
+}
+
+/* 动画状态 */
+.live2d-widget.idle .live2d-character {
+    animation: idle-float 4s ease-in-out infinite;
+}
+
+.live2d-widget.wave .live2d-character {
+    animation: wave-animation 1s ease-in-out;
+}
+
+.live2d-widget.blink .live2d-character {
+    animation: blink-animation 0.5s ease-in-out;
+}
+
+.live2d-widget.bounce .live2d-character {
+    animation: bounce-animation 0.8s ease-in-out;
+}
+
+/* 关键帧动画 */
+@keyframes idle-float {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-3px) rotate(0.5deg);
+    }
+    50% {
+        transform: translateY(-6px) rotate(0deg);
+    }
+    75% {
+        transform: translateY(-3px) rotate(-0.5deg);
+    }
+}
+
+@keyframes wave-animation {
+    0%, 100% {
+        transform: rotate(0deg) scale(1);
+    }
+    25% {
+        transform: rotate(-5deg) scale(1.05);
+    }
+    50% {
+        transform: rotate(5deg) scale(1.1);
+    }
+    75% {
+        transform: rotate(-3deg) scale(1.05);
+    }
+}
+
+@keyframes blink-animation {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes bounce-animation {
+    0%, 100% {
+        transform: translateY(0px) scale(1);
+    }
+    25% {
+        transform: translateY(-15px) scale(1.02);
+    }
+    50% {
+        transform: translateY(-25px) scale(1.05);
+    }
+    75% {
+        transform: translateY(-10px) scale(1.02);
+    }
+}
+
+/* 特效层 */
+.live2d-effects {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* 呼吸光环 */
+.breathing-aura {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 120%;
+    height: 120%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(74, 144, 226, 0.1) 0%,
+        rgba(74, 144, 226, 0.05) 50%,
+        transparent 70%
+    );
+    animation: breathing-pulse 3s ease-in-out infinite;
+}
+
+@keyframes breathing-pulse {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.3;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0.1;
+    }
+}
+
+/* 点击波纹效果 */
+.live2d-widget.wave .click-ripple {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.3) 0%,
+        rgba(255, 255, 255, 0.1) 30%,
+        transparent 70%
+    );
+    animation: ripple-effect 1s ease-out;
+}
+
+@keyframes ripple-effect {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0;
+    }
+}
+
+/* 悬浮提示 */
+.hover-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    margin-bottom: 10px;
+    pointer-events: none;
+    animation: tooltip-appear 0.3s ease-out;
+}
+
+.hover-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.8);
+}
+
+@keyframes tooltip-appear {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* 控制按钮 */
+.live2d-controls {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.live2d-widget:hover .live2d-controls {
+    opacity: 1;
+}
+
+.control-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.1);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .live2d-widget {
+        transform: scale(0.8);
+        transform-origin: bottom left; /* 确保缩放时保持底部左侧对齐 */
+    }
+    
+    .live2d-widget.dragging {
+        transform: scale(0.84); /* 0.8 * 1.05 = 0.84 */
+    }
+    
+    .live2d-widget.hovered:not(.dragging) {
+        transform: scale(0.816); /* 0.8 * 1.02 = 0.816 */
+    }
+    
+    .live2d-widget.snap-target-bottom-left:not(.dragging),
+    .live2d-widget.snap-target-bottom-right:not(.dragging) {
+        transform: scale(0.816); /* 0.8 * 1.02 = 0.816 */
+    }
+    
+    .hover-tooltip {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .live2d-widget {
+        transform: scale(0.6);
+        transform-origin: bottom left; /* 确保缩放时保持底部左侧对齐 */
+    }
+    
+    .live2d-widget.dragging {
+        transform: scale(0.63); /* 0.6 * 1.05 = 0.63 */
+    }
+    
+    .live2d-widget.hovered:not(.dragging) {
+        transform: scale(0.612); /* 0.6 * 1.02 = 0.612 */
+    }
+    
+    .live2d-widget.snap-target-bottom-left:not(.dragging),
+    .live2d-widget.snap-target-bottom-right:not(.dragging) {
+        transform: scale(0.612); /* 0.6 * 1.02 = 0.612 */
+    }
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+    .live2d-character img {
+        filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.1));
+    }
+    
+    .breathing-aura {
+        background: radial-gradient(
+            circle,
+            rgba(144, 202, 249, 0.15) 0%,
+            rgba(144, 202, 249, 0.08) 50%,
+            transparent 70%
+        );
+    }
+}
+
+/* 性能优化 */
+.live2d-widget {
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.live2d-character {
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}

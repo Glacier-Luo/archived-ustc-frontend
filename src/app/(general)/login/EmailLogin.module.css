@@ -1,0 +1,7 @@
+.main {
+  :global(.submit-form-item) {
+    :global(.ant-form-item-row) {
+      justify-content: center;
+    }
+  }
+}
