@@ -148,7 +148,7 @@ export default defineConfig(({ mode }) => {
                     unicodeEscapeSequence: true,
                 },
             }),
-            ...(mode === 'production' ? [createHtmlPlugin({ minify: true })] : []),
+            // ...(mode === 'production' ? [createHtmlPlugin({ minify: true })] : []),
             ...(process.env.ANALYZE_BUNDLE === 'true'
                 ? [
                       analyzer({
@@ -170,7 +170,7 @@ export default defineConfig(({ mode }) => {
                 : [
                       compression({
                           include: /\.*$/,
-                          exclude: /\.(png|jpg|jpeg|webp|mp3|ogg|webm)$/i,
+                          exclude: /\.(png|jpg|jpeg|webp|mp3|ogg|webm|wav|exe|zip|mp4)$/i,
                           algorithms: [
                               defineAlgorithm('brotliCompress', {
                                   params: {
