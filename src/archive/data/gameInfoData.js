@@ -130,6 +130,34 @@ const data = {
       "bgFocusPositionY": 20,
       "mainColor": "#FFA3D7",
       "subColor": "#91F0FF"
+    },
+    {
+      "bgUrl": "/media/areas/final/head.webp",
+      "title": "终章",
+      "subtitle": "最终元谜题",
+      "buttonText": "前往探索",
+      "buttonLink": "/area?dst=final",
+      "align": "right",
+      "bottomPercentage": 17,
+      "rightPercentage": 10,
+      "bgFocusPositionX": 17,
+      "bgFocusPositionY": 20,
+      "mainColor": "#FFA3D7",
+      "subColor": "#91F0FF"
+    },
+    {
+      "bgUrl": "/media/areas/finish/head.webp",
+      "title": "完赛",
+      "subtitle": "完赛了！\n……吗？",
+      "buttonText": "前往查看",
+      "buttonLink": "/area?dst=finish",
+      "align": "right",
+      "bottomPercentage": 17,
+      "rightPercentage": 10,
+      "bgFocusPositionX": 17,
+      "bgFocusPositionY": 20,
+      "mainColor": "#FFA3D7",
+      "subColor": "#91F0FF"
     }
   ]
 };
