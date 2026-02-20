@@ -44,7 +44,7 @@ export default defineConfig(({ mode }) => {
         },
         build: {
             target: ['es2022', 'firefox128', 'chrome111', 'safari16.4'],
-            outDir: 'build',
+            outDir: 'dist',
             assetsInlineLimit: 8192,
             sourcemap: false,
             chunkSizeWarningLimit: 1500,
